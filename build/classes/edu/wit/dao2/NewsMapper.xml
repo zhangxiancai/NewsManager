@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="edu.wit.dao2.NewsDao2">
+
+
+    <resultMap type="edu.wit.entity.News" id="NewsMap">
+		<id property="nid" column="nid"/>
+		<result property="ntid" column="ntid"/>
+		<result property="ntitle" column="ntitle"/>
+		<result property="nauthor" column="nauthor"/>
+		<result property="ncontent" column="ncontent"/>
+		<result property="npicpath" column="npicPath"/>
+		<result property="ncreatedate" column="ncreateDate"/>
+		<result property="nmodifydate" column="nmodifyDate"/>
+		<result property="nsummary" column="nsummary"/>		
+		<!-- <association property="newsAuthor" javaType="com.doit.pojo.Author" resultMap="authorMap"/>
+		 -->
+		<collection property="comments" ofType="edu.wit.entity.Comment" resultMap="commentResult"/>
+
+	</resultMap>
+	
+	<resultMap type="edu.wit.entity.Comment" id="commentResult">
+		<id column="id" property="cid"/>
+		<result column="cid" property="cnid"/>
+		<result column="ccontent" property="ccontent"/>
+		<result column="cdate" property="cdate"/>
+		<result column="cip" property="cip"/>
+		<result column="cauthor" property="cauthor"/>
+	</resultMap>
+
+    <select id="selectNewsComByNid" resultMap="NewsMap" parameterType="int">
+      SELECT n.*,c.* 
+		FROM news n 
+		LEFT OUTER  JOIN comments c
+		ON n.nid = c.cid 
+		WHERE n.nid = #{nid}
+    </select>
+	<select id="findAllNews" resultType="edu.wit.entity.News">
+		SELECT * FROM news 
+	</select>
+	
+	<select id="findNewById" parameterType="int" resultType="edu.wit.entity.News">
+		SELECT * FROM news where nid=#{nid}
+	</select>
+	<insert id="insertNew" parameterType="edu.wit.entity.News" >
+	
+	</insert>
+	
+	<select id="selectNewsByTitle" useCache="true" parameterType="hashmap" resultMap="NewsMap">
+		SELECT 
+			*
+		 FROM news WHERE ntid = #{tid} AND ntitle LIKE CONCAT('%',#{title},'%')
+	</select>
+	<select id="selectNewsByTitle2" useCache="true" parameterType="String" resultMap="NewsMap">
+		SELECT 
+			*
+		 FROM news WHERE ntitle LIKE CONCAT('%',#{title},'%')
+	</select>
+	
+	<select id="selectNewsByTitleAndAuthorAndSummary" resultMap="NewsMap" parameterType="News">
+		select *from news where
+		<trim prefixOverrides="and||or">
+		<if test="ntitle!=null">
+		and ntitle like concat('%',#{ntitle},'%') 
+		</if>
+		<if test="nauthor!=null">
+				and nauthor = #{nauthor}
+			</if>
+		<if test="nsummary!=null">
+				and  nsummary LIKE '%#{nsummary}%' 
+			</if>
+		
+		</trim>
+	</select>
+	
+	<delete id="deleteNewsesByNid" >
+		DELETE FROM news
+			<foreach collection="array" item="nids" open="where nid in (" close=")" separator=",">
+				#{nids}
+			</foreach>
+	</delete>
+	
+	
+	
+</mapper>
